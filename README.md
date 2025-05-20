@@ -12,3 +12,22 @@ FracturesHardCases:
     -->
     -->
 ```
+
+
+Summary of Workflow:
+
+    Read Excel twice into df1 and df2.
+
+    Filter both dataframes with pre-defined column-value conditions.
+
+    Compute similarity scores between each row in df1 and all rows in df2 using:
+
+        Fuzzy string matching (for strings).
+
+        Relative numeric difference (for numbers).
+
+    Pair each row from df1 with the best match from df2 if similarity ≥ threshold.
+
+    Remove matched entries from df2 to prevent duplicates.
+
+    Save results in a new Excel file with original and matched filenames plus similarity score.
