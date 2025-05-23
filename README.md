@@ -10,7 +10,7 @@ Repository is divided in several moduls where each module is impleneted in its o
 FracturesHardCases:
     --> DataFiltering:
         --> CaseMatching.py
-    -->
+    --> 
     -->
 ```
 
@@ -19,7 +19,7 @@ FracturesHardCases:
 Script which can be found in <<span style="color:green">DataFiltering</span> and is internal script to filter necssary files into valid cases. It simply merges two major dataframes <b>df1</b> and <b>df2</b> into one based on the keys and similarity score. This scrip is created to solve compatibility issues.
 
 In order to run the script, it is possible to do so from comand line interfece by prividing the <b>".json"</b> config file with the following content:
-
+<details>
 <ul>
 <li><b>spreadsheet</b> --  Full path to the Excel or CSV file containing the dataset.</li>
 <li><b>sheet</b> -- Name of the sheet to be read (used only for Excel files).</li>
@@ -35,7 +35,8 @@ In order to run the script, it is possible to do so from comand line interfece b
 <li><b>verbose</b> -- Whether to print the resulting matched DataFrame to the console (true = print, false = silent).
 }</li>
 </ul>
-
+</details>
+<hr>
 Based on the provided config file the following functions enabels mergining, filtering and creation of the new spreadsheet with cases to use in the study:
 <details>
 <ul>
