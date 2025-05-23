@@ -1,178 +1,167 @@
-# Match folders of files based on a set of parameters, 2024-03-05
+# Match folders of files based on a set of parameters
+# Updated with CLI support and polished documentation
+# 2024-03-05
 
 import os
 import pathlib
 import pandas
 import sys
+import json
+import argparse
 from rapidfuzz import fuzz
 
-# =========================== CONFIGURATION SETTINGS ===========================
-spreadsheet = pathlib.Path(
-    'M:/Documents/Beruf/Wissenschaft/Laufend/2024 - Predict knee MRI - Stranger/KNEE_dataset_file_total.xlsx'
-)  # Path to the CSV or XLSX file
-
-xlsx_sheetname = 'dataset_file'  # Name of the sheet in Excel file
-
-# Columns to load from spreadsheet (case-insensitive match later)
-spreadsheet_columns = ['filestem', 'INTERNAL_ID', 'Projection_data', 'REL_PATHOL', 
-                       'TEST200', 'TEST300', 'Age1', 'Laterality', 'INCLUDE']
-
-csv_delimiter = ','  # Only used if reading CSV instead of XLSX
-
-match_column = 'filestem'  # Column used as the identifier for matching
-match_parameters = ['age1', 'projection_data']  # Parameters to match (lowercase)
-match_threshold = 0.95  # Similarity threshold [0–1]
-
-# Filters to apply on the two dataframes
-filters_df1 = {
-    'test300': 1.0
-}
-
-filters_df2 = {
-    'rel_pathol': 0.0,
-    'include': 1.0
-}
-
-outputdir = pathlib.Path('M:')
-outputfile = outputdir / 'test_matching_4.xlsx'  # Output Excel file
-verbose_output = True  # Whether to include detailed data
-copy_files = False  # If True, copy matched files (currently not used)
-
-# =========================== FUNCTION DEFINITIONS ===========================
-
-def read_spreadsheet_to_df(xlsx, sheet, cols):
+def read_spreadsheet_to_df(xlsx, sheet, cols, csv_delimiter=','):
     """
     Reads data from an Excel or CSV spreadsheet into a pandas DataFrame.
 
     Parameters:
         xlsx (Path): Path to the spreadsheet.
-        sheet (str): Sheet name if Excel file.
+        sheet (str): Sheet name for Excel files.
         cols (list): Columns to load.
+        csv_delimiter (str): Delimiter used for CSV files.
 
     Returns:
-        pandas.DataFrame: The loaded and cleaned DataFrame.
+        pandas.DataFrame: Loaded and normalized DataFrame.
     """
     try:
         if str(xlsx).endswith('.xlsx'):
-            spreadsheet_df = pandas.read_excel(xlsx, sheet_name=sheet, usecols=cols)
+            df = pandas.read_excel(xlsx, sheet_name=sheet, usecols=cols)
         elif str(xlsx).endswith('.csv'):
-            spreadsheet_df = pandas.read_csv(
-                os.path.normpath(xlsx), dtype=str, sep=csv_delimiter,
-                skipinitialspace=True, usecols=cols
-            )
+            df = pandas.read_csv(xlsx, dtype=str, sep=csv_delimiter,
+                                 skipinitialspace=True, usecols=cols)
         else:
-            raise ValueError("Unsupported file format.")
-        
-        # Normalize column names to lowercase
-        spreadsheet_df.columns = map(str.lower, spreadsheet_df.columns)
-        return spreadsheet_df
+            raise ValueError("Unsupported file format. Only .xlsx and .csv are supported.")
+        df.columns = map(str.lower, df.columns)
+        return df
     except Exception as ex:
-        print('ERROR:', 'Problem reading dataset file into Pandas. Check sheet name and column names.')
+        print('ERROR: Failed to load spreadsheet. Check path, sheet name, and columns.')
         print(ex)
         sys.exit(1)
 
 def similarity(param1, param2):
     """
-    Computes similarity between two values (string or numeric).
+    Computes a similarity score between two parameters.
 
-    For strings: fuzzy string ratio using rapidfuzz.
-    For numbers: similarity based on relative difference.
+    For strings: fuzzy matching ratio.
+    For numbers: normalized relative difference.
 
     Parameters:
-        param1: First value (string or number).
-        param2: Second value (string or number).
+        param1, param2: Comparable values (str or numeric).
 
     Returns:
         float: Similarity score between 0 and 1.
     """
-    x = 0
     try:
         if isinstance(param1, str) and isinstance(param2, str):
-            x = fuzz.ratio(param1, param2) / 100
+            return fuzz.ratio(param1, param2) / 100
         elif isinstance(param1, (int, float)) and isinstance(param2, (int, float)):
-            max_val = max(abs(param1), abs(param2), 1)  # Avoid division by zero
-            x = 1 - abs(param1 - param2) / max_val
-        return x
+            max_val = max(abs(param1), abs(param2), 1)
+            return 1 - abs(param1 - param2) / max_val
     except:
-        return x
+        pass
+    return 0.0
 
-# =========================== MAIN SCRIPT ===========================
-
-def main():
+def similarity_score(row1, row2, parameters):
     """
-    Main function to match files in two filtered datasets based on similarity
-    of selected parameters. Results are saved to an Excel file.
-    """
-    # Load dataset twice (will be filtered separately)
-    df1 = read_spreadsheet_to_df(spreadsheet, xlsx_sheetname, spreadsheet_columns)
-    df2 = read_spreadsheet_to_df(spreadsheet, xlsx_sheetname, spreadsheet_columns)
+    Computes average similarity across multiple parameters for two DataFrame rows.
 
-    # Apply filters to df1
+    Parameters:
+        row1, row2 (Series): Rows to compare.
+        parameters (list): List of column names to compare.
+
+    Returns:
+        float: Mean similarity score.
+    """
+    return sum(similarity(row1[param], row2[param]) for param in parameters) / len(parameters)
+
+def main(config_path):
+    """
+    Main execution function.
+
+    Loads data, filters rows, performs matching based on similarity of selected parameters,
+    and writes matched results to an Excel file.
+
+    Parameters:
+        config_path (str): Path to JSON configuration file.
+    """
+    # Load configuration
+    with open(config_path, 'r') as f:
+        cfg = json.load(f)
+
+    # Parse config paths and parameters
+    spreadsheet = pathlib.Path(cfg["spreadsheet"])
+    sheet = cfg["sheet"]
+    columns = cfg["columns"]
+    csv_delimiter = cfg.get("csv_delimiter", ',')
+    match_column = cfg["match_column"]
+    match_params = [p.lower() for p in cfg["match_parameters"]]
+    match_threshold = cfg["match_threshold"]
+    filters_df1 = {k.lower(): v for k, v in cfg["filters_df1"].items()}
+    filters_df2 = {k.lower(): v for k, v in cfg["filters_df2"].items()}
+    outputfile = pathlib.Path(cfg["outputfile"])
+    verbose = cfg.get("verbose", True)
+
+    # Read and filter data
+    df1 = read_spreadsheet_to_df(spreadsheet, sheet, columns, csv_delimiter)
+    df2 = read_spreadsheet_to_df(spreadsheet, sheet, columns, csv_delimiter)
+
     for k, v in filters_df1.items():
-        df1 = df1.drop(df1[df1[k] != v].index)
-        df2 = df2.drop(df2[df2[k] == v].index)
+        df1 = df1[df1[k] == v]
+        df2 = df2[df2[k] != v]
 
-    # Apply filters to df2
     for k, v in filters_df2.items():
-        df2 = df2.drop(df2[df2[k] != v].index)
+        df2 = df2[df2[k] == v]
 
-    print(df1, df1.count())
-    print(df2, df2.count())
-
-    def similarity_score(row1, row2):
-        """
-        Calculates average similarity score across match_parameters for two rows.
-
-        Parameters:
-            row1 (Series): Row from df1.
-            row2 (Series): Row from df2.
-
-        Returns:
-            float: Average similarity score.
-        """
-        similarity_list = []
-        for item in match_parameters:
-            similarity_list.append(similarity(row1[item], row2[item]))
-        return sum(similarity_list) / len(similarity_list)
-
-    matched_filenames = []
-
-    # Iterate over rows in df1 and find best matching row in df2
-    for index1, row1 in df1.iterrows():
+    matched = []
+    for _, row1 in df1.iterrows():
         best_score = 0
         best_match = None
-        best_index = None
+        best_idx = None
 
-        for index2, row2 in df2.iterrows():
-            score = similarity_score(row1, row2)
+        for idx2, row2 in df2.iterrows():
+            score = similarity_score(row1, row2, match_params)
             if score > best_score:
                 best_score = score
                 if score >= match_threshold:
                     best_match = row2[match_column]
-                    best_index = index2
+                    best_idx = idx2
 
-        matched_filenames.append((row1[match_column], best_match, best_score))
+        matched.append((row1[match_column], best_match, best_score))
+        if best_idx is not None:
+            df2 = df2.drop(index=best_idx)
 
-        # Remove matched row from df2 to avoid duplicate matching
-        if best_index is not None:
-            df2.drop(index=best_index, inplace=True)
+    for _, row1 in df1.iterrows():
+        if row1[match_column] not in [m[0] for m in matched]:
+            matched.append((row1[match_column], None, None))
 
-    # Add unmatched entries in df1 with None match
-    for index1, row1 in df1.iterrows():
-        if row1[match_column] not in [x[0] for x in matched_filenames]:
-            matched_filenames.append((row1[match_column], None, None))
+    result_df = pandas.DataFrame(matched, columns=[match_column+'_df1', match_column+'_df2', 'similarity_score'])
 
-    result_df = pandas.DataFrame(matched_filenames, 
-                                 columns=[match_column+'_df1', match_column+'_df2', 'similarity_score'])
+    outputfile.parent.mkdir(parents=True, exist_ok=True)
+    result_df.to_excel(outputfile, index=False)
 
-    print(result_df, result_df.count())
-
-    # Save results to Excel
-    try:
-        outputdir.mkdir(parents=True, exist_ok=True)
-        result_df.to_excel(outputfile, index=False)
-    except Exception as ex:
-        print('Error writing EXCEL file.', ex)
+    if verbose:
+        print(result_df)
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Match spreadsheet rows based on parameter similarity.')
+    parser.add_argument('--config', required=True, help='Path to JSON configuration file.')
+    args = parser.parse_args()
+    main(args.config)
+
+
+"""
+Example for json config file.
+{
+    "spreadsheet": "KNEE_dataset_file_total.xlsx",
+    "sheet": "dataset_file",
+    "columns": ["filestem", "INTERNAL_ID", "Projection_data", "REL_PATHOL", "TEST200", "TEST300", "Age1", "Laterality", "INCLUDE"],
+    "csv_delimiter": ",",
+    "match_column": "filestem",
+    "match_parameters": ["age1", "projection_data"],
+    "match_threshold": 0.95,
+    "filters_df1": {"test300": 1.0},
+    "filters_df2": {"rel_pathol": 0.0, "include": 1.0},
+    "outputfile": "M:/test_matching_4.xlsx",
+    "verbose": true
+}
+"""
