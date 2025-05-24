@@ -12,9 +12,12 @@ FracturesHardCases:
         --> CaseMatching.py
     --> YOLO:
         --> CVAT_to_YOLO.py
+        --> train_YOLO.py
+        --> test_YOLO.py
+    --> EfficientNet:
+        --> train_efficientnet_fromcsv.py
         -->
         -->
-    -->
 ```
 
 ## CaseMatching.py
@@ -207,17 +210,231 @@ This script evaluates several pretrained YOLOv8 models <b>(n, s, m, l, x variant
 </ol>
     
 <b>Parameters</b>:
+<details>
 <ol>
   <li><b>output_dir</b> -- Directory where evaluation results, plots, and COCO-style JSON files will be saved. <b>(Required)</b>.</li>
   <li><b>gpus</b> -- List of GPU device IDs to use for inference (e.g., <b>0</b> or <b>0 1</b>). Default: <b>[0]</b>.</li>
 </ol>
+</details>
+<hr>
+
+## EfficientNet
+
+EfficientNet directory hold all necessary scripts for EfficientNet training and evaluation. 
+
+### train_efficientnet_fromcsv.py
+
+This script trains one or more <b>EfficientNet models</b> using image labels and metadata provided in an Excel spreadsheet. It converts the Excel file to a CSV, applies data augmentations, and trains each model using the <b>FastAI</b> and <b>efficientnet-pytorch</b> libraries. Multi-GPU training is supported through <b>Distributed Data Parallel (DDP)</b>.
+
+The arguments to run the script are as follows:
+<details> 
+<ul> 
+<li><b>img_path</b> -- Path to the directory containing input images.</li> 
+<li><b>output_path</b> -- Directory where trained model outputs (.pth and .pkl) will be saved.</li> 
+<li><b>cuda_devices</b> -- List of CUDA device IDs to use (e.g. 0 1).</li> 
+<li><b>model_names</b> -- List of EfficientNet model variants to train (e.g. efficientnet-b4 efficientnet-b5).</li> <li><b>epochs</b> -- Number of training epochs (default: 100).</li> 
+<li><b>valid_pct</b> -- Validation split percentage (default: 0.1).</li> 
+<li><b>xlsx_file</b> -- Path to the Excel file containing metadata and labels.</li> 
+<li><b>sheet_name</b> -- Sheet name in the Excel file (e.g. Sheet1).</li> 
+<li><b>file_stem_col</b> -- Column name that contains image filename stems.</li> 
+<li><b>file_suffix</b> -- File extension to append to each image stem (e.g. .png).</li> 
+<li><b>set_col</b> -- Column name indicating the train/val split (e.g. train_val).</li> 
+<li><b>label_col</b> -- Column name containing class labels.</li> 
+</ul> 
+</details> <hr>
+
+Implemented functions inside the script are as follows:
+<details> 
+<ul> 
+<li><b>main(args)</b> -- Parses CLI arguments and performs the entire pipeline: 
+<ol> 
+<li>Reads and filters Excel metadata.</li> 
+<li>Converts metadata to CSV format.</li> 
+li>Iterates through a list of EfficientNet models and trains each using FastAI.</li> 
+<li>Saves both the model weights (.pth) and FastAI learner (.pkl).</li> 
+<li>Removes temporary CSV after training.</li> 
+</ol>
+
+<b>Parameters</b>: All values are read from the command line using <code>argparse</code>.
+<hr> <li><b>find_delimiter(file)</b> -- Detects the delimiter used in a CSV file (e.g. comma, tab).
+
+<b>Returns</b>:
+<ol> 
+<li>A <b>str</b> representing the detected delimiter.</li> 
+</ol> 
+</li> 
+</ul> 
+</details> <hr>
+
+    
+### efficientnet_test_eval.py
+
+Certainly! Here's a `README` section for the `efficientnet_test_eval.py` script, written in the same format as your `CVAT_to_YOLO.py` description:
+
+---
+
+### efficientnet_test_eval.py
+
+This tool evaluates multiple <b>EfficientNet models</b> on defined test sets. It reads model predictions from `.pkl` files, processes the input images (optionally equalizing them), runs inference, and saves the results to a well-formatted <b>Excel (.xlsx)</b> file. Optional metadata can also be extracted directly from filenames.
+
+The arguments to run the script are as follows:
+
+<details>
+<ul>
+<li><b>test_dirs</b> -- A flat list of test set directory and name pairs. For example: <br>
+<code>--test_dirs /path/to/testset1 difficult /path/to/testset2 random</code></li>
+
+<li><b>model_paths</b> -- A flat list of model info triples: path to <b>.pkl</b>, model name, and input size (e.g., 224, 380). For example: <br>
+<code>--model_paths /path/to/model_b0.pkl efficientnet-b0 224</code></li>
+
+<li><b>xlsx_output</b> -- Path to the Excel file where results will be saved.</li>
+<li><b>cuda_device</b> -- Index of the CUDA device to use (default: 0).</li>
+<li><b>equalize</b> -- Optional flag to apply histogram equalization to each input image.</li>
+<li><b>extract_info</b> -- Optional flag to extract structured metadata from file names (e.g. age, gender, etc.).</li>
+</ul>
+</details>
+
+<hr>
+
+Implemented functions inside the script are as follows:
+
+<details>
+<ul>
+
+<li><b>main(args)</b> — The main function that:
+<ol>
+<li>Parses CLI arguments using <code>argparse</code>.</li>
+<li>Iterates through test sets and models, loading images and running predictions.</li>
+<li>Formats results into a Pandas DataFrame.</li>
+<li>Optionally extracts metadata from filenames.</li>
+<li>Exports final results to an Excel spreadsheet.</li>
+</ol>
+</li>
+
+<hr>
+
+<li><b>resizetosquare(img, size, interpolation)</b> — Pads and resizes an image to be square.
+
+<b>Parameters:</b>
+
+<ol>
+<li><b>img</b> — NumPy image array.</li>
+<li><b>size</b> — Target image size in pixels.</li>
+<li><b>interpolation</b> — OpenCV interpolation method (e.g., <i>cv2.INTER_AREA</i>).</li>
+</ol>
+
+<b>Returns:</b>
+
+<ol>
+<li>A square NumPy image array of the specified size.</li>
+</ol>
+</li>
+
+</ul>
+</details>
+
+<hr>
+
+### gradcam_efficientnet.py
+
+This tool applies <b>Grad-CAM</b> visualizations to test images using a trained <b>EfficientNet</b> model saved as a FastAI <code>.pkl</code> file. Based on an Excel file containing file stems and metadata, the script locates and processes matching images. For each image, it produces and saves:
+<ul>
+    <li>A raw Grad-CAM <b>heatmap</b>,</li>
+    <li>The <b>original</b> image,</li>
+    <li>A <b>superimposed</b> visualization (heatmap + original).</li>
+</ul>
+
+The arguments to run the script are as follows:
+<details> 
+<ul> 
+<li><b>model_path</b> -- Path to the trained model (.pkl file).</li> 
+<li><b>input_dir</b> -- Directory containing test images.</li> 
+<li><b>excel_file</b> -- Excel file containing image filename stems and a split column (e.g. train/val/test).</li> 
+<li><b>output_dir</b> -- Directory where Grad-CAM visualizations will be saved.</li> 
+</ul> 
+</details> 
+<hr>
+
+Implemented functions inside the script are as follows:
+<details> 
+<ul> 
+<li><b>main(args)</b> — The main function that: 
+<ol> 
+<li>Parses CLI arguments using <b>argparse</b>.</li> 
+<li>Reads the Excel file and filters for relevant test image file stems.</li> 
+<li>Copies all matching image files to a temporary directory for processing.</li> 
+<li>Loads a trained EfficientNet model.</li> 
+<li>Finds the last model block used for Grad-CAM visualization.</li> 
+<li>Applies Grad-CAM to each image and saves the following outputs: 
+<ul> 
+<li><i>_heatmap</i> -- raw Grad-CAM heatmap</li> 
+<li><i>_original</i> -- original image</li> 
+<li><i>_superimposed</i> -- heatmap overlayed on the original image</li> 
+</ul> 
+</li> 
+</ol> 
+</li> 
+<hr> 
+<li><b>apply_gradcam(learn, img_path, layer_name)</b> -- Applies Grad-CAM to a single image.
+
+<b>Parameters:</b>
+<ol> 
+<li><b>learn</b> -- FastAI <b>Learner</b> object with a trained model.</li> 
+<li><b>img_path</b> -- Path to the image file.</li> 
+<li><b>layer_name</b> -- Name of the model layer used for Grad-CAM visualization.</li> </ol>
+
+<b>Returns:</b>
+<ol> 
+<li><b>heatmap_colored</b> -- The colorized heatmap as a NumPy array.</li> 
+<li><b>img</b> -- The original image loaded via OpenCV.</li> 
+<li><b>superimposed_img</b> -- Heatmap blended with the original image.</li> 
+</ol> </li> 
+<hr>
+</ul> 
+</details> 
 <hr>
 
 
 
-    
+### Efficientnet_eval_report.py
 
-    
+This tool evaluates predictions from multiple <b>EfficientNet</b> models on classification test sets. It computes classification metrics, generates <b>confusion matrices</b>, and exports results into a detailed <b>Excel summary</b>. Additionally, it produces:
 
-    
+<ul> 
+<li>PDF visualizations of individual confusion matrices for each model and test set</li> 
+<li>A combined grid of all confusion matrices</li> 
+<li>An Excel-based <b>pivot table</b> summarizing model performance</li> 
+</ul>
 
+The arguments to run the script are as follows:
+<details> 
+<ul> 
+<li><b>xlsx_path</b> -- Path to the Excel file containing prediction results and metadata.</li> 
+<li><b>ground_truth_path</b> -- Path to a second Excel file with ground-truth labels (used if <b>ground_truth</b> column is missing from <b>xlsx_path</b>).</li> <li><b>pdf_dir</b> -- Directory where confusion matrix PDF visualizations will be saved.</li> 
+<li><b>output_xlsx_dir</b> -- Directory where the results Excel file and pivot table will be saved.</li> 
+</ul> 
+</details> 
+<hr>
+
+Implemented functions inside the script are as follows:
+<details> 
+<ul> 
+<li><b>generate_report(xlsx_path, ground_truth_path, pdf_dir, output_xlsx_dir)</b> -- The main function that: 
+<ol> 
+<li>Loads predictions and optionally merges ground-truth labels if missing.</li> 
+<li>Calculates metrics using <b>classification_report</b> and <b>accuracy_score</b>.</li> 
+<li>Saves per-model confusion matrices as individual PDFs.</li> 
+<li>Generates a combined grid of confusion matrices (up to 9 per page).</li> 
+<li>Writes a full metrics table to <b>classification_results.xlsx</b>.</li> 
+<li>Creates a pivot table summarizing model performance by test set.</li> 
+</ol> 
+</li> 
+<hr> 
+<li><b>classification_report</b> / <b>confusion_matrix</b> (from <b>sklearn.metrics</b>) -- Used to: 
+<ol> <li>Compute macro- and weighted-averaged precision, recall, F1-scores</li>
+<li>Generate normalized confusion matrices for visualization</li> 
+</ol> 
+</li> 
+</ul> 
+</details> 
+<hr>
