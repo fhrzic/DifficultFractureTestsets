@@ -15,9 +15,10 @@ FracturesHardCases:
         --> train_YOLO.py
         --> test_YOLO.py
     --> EfficientNet:
-        --> train_efficientnet_fromcsv.py
-        -->
-        -->
+        --> efficientnet_train_fromcsv.py
+        --> gradcam_efficientnet.py
+        --> efficientnet_eval_report.py
+        --> efficientnet_test_eval.py
 ```
 
 ## CaseMatching.py
@@ -222,7 +223,7 @@ This script evaluates several pretrained YOLOv8 models <b>(n, s, m, l, x variant
 
 EfficientNet directory hold all necessary scripts for EfficientNet training and evaluation. 
 
-### train_efficientnet_fromcsv.py
+### efficientnet_train_fromcsv.py
 
 This script trains one or more <b>EfficientNet models</b> using image labels and metadata provided in an Excel spreadsheet. It converts the Excel file to a CSV, applies data augmentations, and trains each model using the <b>FastAI</b> and <b>efficientnet-pytorch</b> libraries. Multi-GPU training is supported through <b>Distributed Data Parallel (DDP)</b>.
 
@@ -267,12 +268,6 @@ li>Iterates through a list of EfficientNet models and trains each using FastAI.<
 </details> <hr>
 
     
-### efficientnet_test_eval.py
-
-Certainly! Here's a `README` section for the `efficientnet_test_eval.py` script, written in the same format as your `CVAT_to_YOLO.py` description:
-
----
-
 ### efficientnet_test_eval.py
 
 This tool evaluates multiple <b>EfficientNet models</b> on defined test sets. It reads model predictions from `.pkl` files, processes the input images (optionally equalizing them), runs inference, and saves the results to a well-formatted <b>Excel (.xlsx)</b> file. Optional metadata can also be extracted directly from filenames.
@@ -395,8 +390,7 @@ Implemented functions inside the script are as follows:
 <hr>
 
 
-
-### Efficientnet_eval_report.py
+### efficientnet_eval_report.py
 
 This tool evaluates predictions from multiple <b>EfficientNet</b> models on classification test sets. It computes classification metrics, generates <b>confusion matrices</b>, and exports results into a detailed <b>Excel summary</b>. Additionally, it produces:
 
@@ -437,4 +431,232 @@ Implemented functions inside the script are as follows:
 </li> 
 </ul> 
 </details> 
+<hr>
+
+## StatisticsAndResults
+
+In this direcrtory there are scripts used to evaluate and generate images for statistics.
+
+### yolov8_pr_curve_eval.py
+
+This tool evaluates <b>YOLOv8</b> predictions on binary detection tasks using <b>Precision-Recall (PR) curves</b>. It calculates per-model <b>Average Precision (AP)</b>, <b>F1-scores</b>, and <b>confidence intervals</b> via bootstrapping. Results are visualized and saved to disk in multiple formats.
+
+The script generates:
+<ul> 
+<li>PDF and PNG PR curve visualizations per model (for both <b>matched</b> and <b>difficult</b> test sets)</li> 
+<li>A combined PR plot showing all model curves</li> 
+<li>An Excel file summarizing AUC, F1, Precision, and Recall</li> 
+</ul>
+
+The arguments to run the script are as follows:
+<details> 
+<ul> 
+<li><b>data_paths</b> -- A list of two paths: <br> <b>[ /path/to/difficult, /path/to/matched ]</b><br> Each path must follow the YOLO directory format with subfolders: <b>images/test/</b> and <b>labels/test/</b>. </li> 
+<li><b>output_dir</b> -- Directory where PR curve plots and the Excel metrics summary will be saved.</li> 
+</ul> 
+</details> 
+<hr>
+
+Implemented functions inside the script are as follows:
+<details> 
+<ul> 
+<li><b>main(args)</b> -- The main function that: 
+<ol> 
+<li>Loads predictions for all 5 YOLOv8 model variants (<i>n, s, m, l, x</i>).</li> 
+<li>Computes PR curves for both <b>difficult</b> and <b>matched</b> test sets.</li> 
+<li>Bootstraps the PR curves and computes 95% confidence bands.</li> 
+<li>Generates per-model PR plots and a combined PR plot.</li> 
+<li>Exports all metrics to an Excel file (<i>metrics_output.xlsx</i>).</li> 
+</ol> 
+</li> 
+<hr> 
+<li><b>get_pr_curve(preds, data_root, threshold=0.5)</b> -- Computes binary labels and confidence scores: 
+<ol> 
+<li>Compares predicted boxes with ground-truth labels using IoU ≥ 0.5.</li> 
+<li>Returns binary vector of detections and associated confidence scores.</li> 
+</ol> 
+</li> 
+<hr> 
+<li><b>bootstrap_pr_curve(y_true, y_scores)</b> -- Estimates confidence intervals on PR curve: 
+<ol> 
+<li>Resamples input scores using bootstrap sampling.</li> 
+<li>Interpolates PR points to create smooth curves with shaded error regions.</li> 
+</ol> 
+</li> 
+<hr> 
+<li><b>calculate_auc_ci(y_true, y_scores)</b> -- Bootstraps AUC estimation: 
+<ol> 
+<li>Calculates mean AUC and lower/upper confidence bounds (default 95%).</li> 
+</ol> 
+</li> 
+</ul> 
+</details> 
+<hr>
+
+### Scripts in effnet_eval dir
+The scripts in this directory enabels creating visualisations and calculation of the metrices in regard to evaluation of efficient net.
+
+#### main.py
+This tool evaluates EfficientNet model variants on binary classification tasks by computing ROC AUC and Precision-Recall (PR) AUC curves, including confidence intervals estimated via bootstrapping. It supports both per-model visualization and a combined summary, and exports all results to Excel.
+
+The script generates:
+<ul> <li>ROC AUC and PR AUC plots (PDF/PNG) for each EfficientNet variant.</li> <li>Optional 3x3 combined subplot of all models’ curves.</li> <li>An Excel file with average AUCs, F1-scores, precision, and recall, including bootstrap confidence bounds.</li> </ul>
+
+The arguments to run the script are as follows:
+<details> 
+<ul> 
+<li><b>--input_excel</b> -- Path to the Excel file containing model predictions and ground truth labels.</li> 
+<li><b>--output_dir</b> -- Directory where plots and Excel summary will be saved.</li> 
+<li><b>--macro_pr_auc</b> -- (Optional) If set, uses macro-averaged PR AUC instead of micro.</li> 
+<li><b>--combined_subplot</b> -- (Optional) If set, creates a 3×3 subplot of all EfficientNet variants.</li> 
+<li><b>--n_bootstraps</b> -- (Optional) Number of bootstrap samples for confidence interval calculation. Default: 256.</li> 
+</ul> 
+</details> 
+<hr>
+
+Implemented functions inside the script are as follows:
+<details> 
+<ul> 
+<li><b>main()</b> -- The main function that: 
+<ol> 
+<li>Parses CLI arguments and prepares input/output paths.</li> 
+<li>Loads prediction results and extracts EfficientNet variants.</li> 
+<li>Calls plotting functions to compute and visualize ROC and PR curves per model.</li> 
+<li>Bootstraps the AUC metrics for confidence interval estimation.</li> 
+<li>Exports ROC and PR results to an Excel file with multiple sheets.</li> 
+</ol> </li> 
+<hr> 
+<li><b>plot_roc_auc_curves(models, part)</b> -- (Imported)<br> Generates ROC AUC curves and confidence intervals for each model. Returns a DataFrame with per-model AUC statistics.</li> 
+<hr> 
+<li><b>plot_precision_recall_curves(models, part)</b> -- (Imported)<br> Generates PR AUC curves and confidence intervals for each model. Returns a DataFrame with per-model AP/F1 metrics.</li> 
+</ul> 
+</details> 
+<hr>
+
+
+#### config.py
+
+This configuration module defines global constants and lookup mappings used throughout the EfficientNet evaluation pipeline. It supports consistent labeling, plotting, region classification, and bootstrap evaluation for ROC and PR AUC metrics.
+
+The module provides:
+<ul> 
+<li>Global evaluation flags (e.g., macro-averaged PR AUC, number of bootstrap iterations).</li> 
+<li>Label mappings for anatomical regions and projections.</li> 
+<li>Model name aliases for simplified visualization (e.g., “B0”, “B1”, ...).</li> 
+<li>Color codes for matched vs. difficult test subsets in plots.</li> 
+</ul>
+
+The defined configuration variables are as follows:
+<details> 
+<ul> 
+<li><b>PRAUC_MACRO_AVERAGE</b> -- If <b>True</b>, uses macro-averaged PR AUC (averages over classes). Otherwise, micro-averaged.</li> 
+<li><b>COMBINATION_SUBPLOT_MEAN</b> -- If <b>True</b>, generates a 3x3 subplot combining all models in a single figure.</li> 
+<li><b>N_BOOTSTRAPS</b> -- Number of bootstrap iterations to estimate AUC confidence intervals. Default: <b>256</b>.</li> 
+</ul> 
+</details> 
+<hr>
+
+Mappings and dictionaries:
+<details> 
+<ul> 
+<li><b>regions_dict</b> -- Maps region abbreviations to full anatomical names and integer IDs used in datasets. <pre> "ANK": ["Ankle", 15], "KNE": ["Knee", 13], ... </pre> </li> 
+<hr> 
+<li><b>projections_dict</b> -- Maps internal dataset projection types to human-readable names: <pre> "difficult" → "difficult" "matched" → "easy" </pre> </li> <hr> <li><b>efficientnet_dict</b> -- Maps full EfficientNet model names to shorthand labels for visualization: <pre> "efficientnet-b0" → "B0", "efficientnet-b7" → "B7" </pre> </li> <hr> <li><b>colors</b> -- Defines color mapping for test set types in visualizations: <pre> "matched" → forestgreen "difficult" → tomato </pre> </li> 
+</ul> 
+</details>
+<hr>
+
+#### effnet_eval/metrics.py
+
+This module provides core evaluation utilities for binary classification performance analysis using EfficientNet model predictions. It supports generation of ROC and Precision-Recall (PR) curves, as well as bootstrapped confidence intervals for both AUC metrics.
+
+The module is used throughout the evaluation pipeline to generate statistically robust metrics and visualize model performance with confidence bounds.
+
+The script provides:
+<ul> 
+<li>Bootstrapped confidence intervals for ROC AUC and PR AUC scores.</li> 
+<li>Flexible support for macro- or micro-averaged PR AUC (based on configuration).</li> 
+<li>Helper functions to generate standard ROC and PR curves.</li> 
+</ul>
+
+The following global settings are imported from <b>config.py</b>:
+<details> 
+<ul> 
+<li><b>N_BOOTSTRAPS</b> -- Number of bootstrap samples (default: <b>256</b>).</li> 
+<li><b>PRAUC_MACRO_AVERAGE</b> -- If set, uses macro-averaged PR AUC; otherwise, computes AUC from PR curve points.</li> 
+</ul> 
+</details> 
+<hr>
+
+Implemented functions inside the script are as follows:
+<details> 
+<ul> 
+<li><b>calculate_prauc_ci(y_true, y_scores, n_bootstraps, alpha)</b> -- 
+<ol> 
+<li>Bootstraps precision-recall AUC using resampled scores.</li> 
+<li>Returns a tuple: lower and upper confidence bounds.</li> 
+<li>Respects <b>PRAUC_MACRO_AVERAGE</b> flag.</li> 
+</ol> </li> 
+<hr> 
+<li><b>calculate_roc_auc_ci(y_true, y_scores, n_bootstraps, alpha)</b> -- 
+<ol> 
+<li>Bootstraps ROC AUC using standard resampling.</li> 
+<li>Returns a tuple: lower and upper confidence bounds.</li> 
+</ol> 
+</li> 
+<hr> 
+<li><b>calculate_pr_curve(y_true, y_scores)</b> -- <ol> 
+<li>Computes the full precision-recall curve.</li> 
+<li>Returns: <b>precision</b>, <b>recall</b>, <b>thresholds</b>, and <b>auc</b>.</li> </ol> </li> <hr> <li><b>calculate_roc_curve(y_true, y_scores)</b> -- <ol> <li>Computes the full ROC curve and AUC.</li> 
+<li>Returns: <b>fpr</b>, <b>tpr</b>, <b>thresholds</b>, and <b>auc</b>.</li> </ol> </li> 
+</ul> 
+</details>
+<hr>
+
+#### plotting.py
+
+This module provides all visualization utilities for EfficientNet model evaluation. It generates ROC AUC and Precision-Recall (PR) AUC plots for each model variant across different test sets (e.g., matched, difficult), including bootstrapped confidence intervals. The resulting plots are saved as PNG and PDF files, and a summary table of AUC values with confidence bounds is returned.
+
+The script generates:
+<ul> 
+<li>ROC AUC plots per model (with shaded confidence bands)</li> 
+<li>Precision-Recall plots per model (with shaded confidence bands)</li> 
+<li>PDF and PNG visualizations in a 3×3 grid layout</li> 
+<li>Summary <b>DataFrame</b> of AUC scores and confidence intervals (for export to Excel)</li> 
+</ul>
+
+It uses global settings and dictionaries from the configuration module:
+
+<details> 
+<ul> 
+<li><b>PRAUC_MACRO_AVERAGE</b> -- If set, uses macro-averaged PR AUC and bootstraps over full curve.</li> 
+<li><b>COMBINATION_SUBPLOT_MEAN</b> -- (Imported, unused in this module).</li> 
+<li><b>colors</b> -- Used for coloring *matched* and *difficult* test sets.</li> 
+<li><b>efficientnet_dict</b> -- Short model names (e.g., “B0” for “efficientnet-b0”).</li> 
+<li><b>projections_dict</b> -- Maps test set names for labeling (e.g., “difficult” → “difficult”).</li> 
+</ul> 
+</details>
+<hr>
+
+Implemented functions inside the script:
+<details> 
+<ul> 
+<li><b>plot_roc_auc_curves(df, efficientnets, output_dir)</b> -- <ol> 
+<li>Iterates over EfficientNet model variants.</li> 
+<li>Filters the DataFrame by model and test set name.</li> 
+<li>Computes ROC curves with bootstrapped intervals.</li> 
+<li>Generates a 3×3 subplot grid of ROC curves.</li> 
+<li>Saves both PDF and PNG plots to <b>output_dir</b>.</li> 
+<li>Returns a <b>pandas.DataFrame</b> with AUC and 95% confidence bounds.</li> 
+</ol> </li> 
+<hr> 
+<li><b>plot_precision_recall_curves(df, efficientnets, output_dir)</b> -- <ol> 
+<li>Similar to <b>plot_roc_auc_curves</b>, but for PR curves.</li> 
+<li>Uses either macro or micro-averaged bootstrapping (configurable).</li> 
+<li>Draws shaded confidence bands for precision-recall curve points.</li> 
+<li>Returns a <b>pandas.DataFrame</b> with PR AUC and confidence intervals.</li>
+</ol> 
+</li> 
+</ul> 
+</details>
 <hr>
