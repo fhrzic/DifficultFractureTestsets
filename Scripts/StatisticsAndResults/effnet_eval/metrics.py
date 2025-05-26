@@ -8,7 +8,7 @@ from sklearn.metrics import (
     roc_curve,
     roc_auc_score,
 )
-from effnet_eval.config import N_BOOTSTRAPS, PRAUC_MACRO_AVERAGE
+from Scripts.StatisticsAndResults.effnet_eval.config import *
 
 
 def calculate_prauc_ci(y_true, y_scores, n_bootstraps=N_BOOTSTRAPS, alpha=0.95):

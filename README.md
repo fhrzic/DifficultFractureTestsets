@@ -2,7 +2,7 @@
 
 Repository providing code for the study performed in paper <b>"Artificial Intelligence Test Set Performance in Difficult Cases Matched with Routine Cases of Pediatric Appendicular Skeleton Fractures"</b>.
 
-### Repository organisation
+### Repository organization, install and run
 
 Repository is divided in several moduls where each module is impleneted in its own script inside designated directory. The idea is that code can be used separately based on ones needs. Here is the overview of repository composition and available scripts:
 
@@ -19,8 +19,35 @@ FracturesHardCases:
         --> gradcam_efficientnet.py
         --> efficientnet_eval_report.py
         --> efficientnet_test_eval.py
+    --> StatisticsAndResults:
+        --> yolov8_pr_curve_eval.py
+        --> effnet_eval:
+            --> config.py
+            --> main.py
+            --> metrics.py
+            --> plotting.py
 ```
 
+<b>Install</b>:
+
+```
+conda env create -f environment.yml
+conda activate HardCaseEnv
+```
+
+<b>Entry Points</b>:
+<ul>
+<li<>'HCE-trainYOLO = Scripts.YOLO.train_YOLO:main'</li>
+<li<>'HCE-testYOLO = Scripts.YOLO.test_YOLO:main'</li>
+<li<>'HCE-CVATtoYOLO = Scripts.YOLO.CVAT_to_YOLO:main'</li>
+<li<>'HCE-CaseMatching = Scripts.DataFiltering.CaseMatching:main'</li>
+<li<>'HCE-evalEffNet = Scripts.EfficientNet.efficientnet_eval_report:main'</li>
+<li<>'HCE-testEffNet = Scripts.EfficientNet.efficientnet_test_eval:main'</li>
+<li<>'HCE-trainEffNet = Scripts.EfficientNet.efficientnet_train_fromcsv:main'</li>
+<li<>'HCE-gradcamEffNet = Scripts.EfficientNet.gradcam_efficientnet:main'</li>
+<li<>'HCE-evalYOLOMetrics = Scripts.StatisticsAndResults.yolov8_pr_curve_eval:main'</li>
+<li<>'HCE-evalEffNetMetrics = Scripts.StatisticsAndResults.effnet_eval.main:main'</li>
+<ul>
 ## CaseMatching.py
 
 Script which can be found in <<span style="color:green">DataFiltering</span> and is internal script to filter necssary files into valid cases. It simply merges two major dataframes <b>df1</b> and <b>df2</b> into one based on the keys and similarity score. This scrip is created to solve compatibility issues.

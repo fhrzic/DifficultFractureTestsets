@@ -101,7 +101,12 @@ def bootstrap_pr_curve(y_true, y_scores, n_bootstraps=128, alpha=0.95):
     upper = np.percentile(curves, (1 + alpha) / 2 * 100, axis=0)
     return np.linspace(0, 1, 1000), mean, lower, upper
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser(description="Evaluate PR curves for YOLOv8 models and generate metrics.")
+    parser.add_argument('--data_paths', nargs=2, required=True, help='Paths to ground truth data: [difficult_path matched_path]')
+    parser.add_argument('--output_dir', required=True, help='Directory to save outputs (plots and metrics)')
+    args = parser.parse_args()
+
     model_names = ["YOLOv8n", "YOLOv8s", "YOLOv8m", "YOLOv8l", "YOLOv8x"]
     model_paths = [
         ["786_diff_yolov8n", "786_matched_yolov8n"],
@@ -179,8 +184,4 @@ def main(args):
     print(f"Saved results to {metrics_output} and PR curves to {output_folder}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Evaluate PR curves for YOLOv8 models and generate metrics.")
-    parser.add_argument('--data_paths', nargs=2, required=True, help='Paths to ground truth data: [difficult_path matched_path]')
-    parser.add_argument('--output_dir', required=True, help='Directory to save outputs (plots and metrics)')
-    args = parser.parse_args()
-    main(args)
+    main()

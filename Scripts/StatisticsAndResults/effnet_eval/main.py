@@ -2,7 +2,7 @@ import argparse
 import pandas as pd
 import os
 
-from your_module_name import plot_precision_recall_curves, plot_roc_auc_curves  # Import from the script you posted
+from Scripts.StatisticsAndResults.effnet_eval.plotting import *
 
 def main():
     """

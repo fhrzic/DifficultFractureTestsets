@@ -29,10 +29,19 @@ def resizetosquare(img, size, interpolation):
 
     return cv2.resize(mask, (size, size), interpolation)
 
-def main(args):
+def main():
     """
     Evaluate multiple EfficientNet models on multiple test sets and export results to an Excel file.
     """
+    parser = argparse.ArgumentParser(description="Evaluate EfficientNet models on test sets and export results to Excel.")
+    parser.add_argument('--test_dirs', nargs='+', required=True, help='List of test set directories and names, e.g., path1 name1 path2 name2')
+    parser.add_argument('--model_paths', nargs='+', required=True, help='List of model .pkl paths, names, and input sizes: path name size')
+    parser.add_argument('--xlsx_output', required=True, help='Path to the output Excel file')
+    parser.add_argument('--cuda_device', type=int, default=0, help='CUDA device index (default: 0)')
+    parser.add_argument('--equalize', action='store_true', help='Apply histogram equalization to images')
+    parser.add_argument('--extract_info', action='store_true', help='Extract metadata from filenames')
+    args = parser.parse_args()
+
     test_sets = [[Path(p), n] for p, n in zip(args.test_dirs[::2], args.test_dirs[1::2])]
     models = [[Path(p), n, s] for p, n, s in zip(args.model_paths[::3], args.model_paths[1::3], args.model_paths[2::3])]
 
@@ -138,12 +147,4 @@ def main(args):
         print(f"Error writing Excel: {ex}")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Evaluate EfficientNet models on test sets and export results to Excel.")
-    parser.add_argument('--test_dirs', nargs='+', required=True, help='List of test set directories and names, e.g., path1 name1 path2 name2')
-    parser.add_argument('--model_paths', nargs='+', required=True, help='List of model .pkl paths, names, and input sizes: path name size')
-    parser.add_argument('--xlsx_output', required=True, help='Path to the output Excel file')
-    parser.add_argument('--cuda_device', type=int, default=0, help='CUDA device index (default: 0)')
-    parser.add_argument('--equalize', action='store_true', help='Apply histogram equalization to images')
-    parser.add_argument('--extract_info', action='store_true', help='Extract metadata from filenames')
-    args = parser.parse_args()
-    main(args)
+    main()

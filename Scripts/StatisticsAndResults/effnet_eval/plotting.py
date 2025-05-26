@@ -6,11 +6,8 @@ import os
 import pandas as pd
 from tqdm import tqdm
 
-from effnet_eval.metrics import (
-    bootstrap_roc_curve, bootstrap_pr_curve, bootstrap_macro_pr_curve,
-    calculate_roc_auc_ci, calculate_prauc_ci, calculate_ci_auc_of_macro_pr_curve
-)
-from effnet_eval.config import efficientnet_dict, projections_dict, colors, PRAUC_MACRO_AVERAGE, COMBINATION_SUBPLOT_MEAN
+from Scripts.StatisticsAndResults.effnet_eval.metrics import *
+from Scripts.StatisticsAndResults.effnet_eval.config import *
 
 def plot_roc_auc_curves(df, efficientnets, output_dir):
     """

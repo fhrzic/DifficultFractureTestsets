@@ -59,7 +59,14 @@ def apply_gradcam(learn, img_path, layer_name):
 
     return heatmap_colored, img, superimposed_img
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser(description="Apply Grad-CAM to test images using a trained EfficientNet model.")
+    parser.add_argument('--model_path', required=True, help='Path to the .pkl model file')
+    parser.add_argument('--input_dir', required=True, help='Directory containing input image data')
+    parser.add_argument('--excel_file', required=True, help='Excel file with image stem metadata')
+    parser.add_argument('--output_dir', required=True, help='Directory to save Grad-CAM outputs')
+    args = parser.parse_args()
+
     model_path = Path(args.model_path)
     inputdir = Path(args.input_dir)
     excel_path = Path(args.excel_file)
@@ -109,10 +116,4 @@ def main(args):
     print(f'Saved images to {output_dir}.')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Apply Grad-CAM to test images using a trained EfficientNet model.")
-    parser.add_argument('--model_path', required=True, help='Path to the .pkl model file')
-    parser.add_argument('--input_dir', required=True, help='Directory containing input image data')
-    parser.add_argument('--excel_file', required=True, help='Excel file with image stem metadata')
-    parser.add_argument('--output_dir', required=True, help='Directory to save Grad-CAM outputs')
-    args = parser.parse_args()
-    main(args)
+    main()

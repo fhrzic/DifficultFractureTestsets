@@ -1,4 +1,4 @@
-name: SNNUnet
+name: HardCaseEnv
 channels:
   - defaults
 dependencies:

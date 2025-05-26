@@ -23,11 +23,28 @@ def find_delimiter(file):
         delimiter = sniffer.sniff(fp.read(4096)).delimiter
     return delimiter
 
-def main(args):
+def main():
     """
     Main function to train EfficientNet models on image data specified in an Excel sheet.
     Converts Excel to CSV, creates data loaders, applies augmentation, and trains models.
     """
+
+    parser = argparse.ArgumentParser(description="Train EfficientNet models on image data from Excel annotations.")
+    parser.add_argument('--img_path', required=True, help='Path to the image directory')
+    parser.add_argument('--output_path', required=True, help='Directory to save model outputs')
+    parser.add_argument('--cuda_devices', nargs='+', type=int, default=[0], help='List of CUDA device IDs to use')
+    parser.add_argument('--model_names', nargs='+', required=True, help='List of EfficientNet model variants to train')
+    parser.add_argument('--epochs', type=int, default=100, help='Number of training epochs')
+    parser.add_argument('--valid_pct', type=float, default=0.1, help='Validation split percentage')
+    parser.add_argument('--xlsx_file', required=True, help='Path to Excel file with image annotations')
+    parser.add_argument('--sheet_name', required=True, help='Sheet name in the Excel file')
+    parser.add_argument('--file_stem_col', required=True, help='Column with file stem names')
+    parser.add_argument('--file_suffix', required=True, help='File extension to append to stem names')
+    parser.add_argument('--set_col', required=True, help='Column indicating train/val split')
+    parser.add_argument('--label_col', required=True, help='Column with class labels')
+
+    args = parser.parse_args()
+
     img_path = Path(args.img_path)
     output_path = Path(args.output_path)
     cuda_device = args.cuda_devices
@@ -106,19 +123,4 @@ def main(args):
         print(f"Temporary CSV {output_csv_path} removed.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train EfficientNet models on image data from Excel annotations.")
-    parser.add_argument('--img_path', required=True, help='Path to the image directory')
-    parser.add_argument('--output_path', required=True, help='Directory to save model outputs')
-    parser.add_argument('--cuda_devices', nargs='+', type=int, default=[0], help='List of CUDA device IDs to use')
-    parser.add_argument('--model_names', nargs='+', required=True, help='List of EfficientNet model variants to train')
-    parser.add_argument('--epochs', type=int, default=100, help='Number of training epochs')
-    parser.add_argument('--valid_pct', type=float, default=0.1, help='Validation split percentage')
-    parser.add_argument('--xlsx_file', required=True, help='Path to Excel file with image annotations')
-    parser.add_argument('--sheet_name', required=True, help='Sheet name in the Excel file')
-    parser.add_argument('--file_stem_col', required=True, help='Column with file stem names')
-    parser.add_argument('--file_suffix', required=True, help='File extension to append to stem names')
-    parser.add_argument('--set_col', required=True, help='Column indicating train/val split')
-    parser.add_argument('--label_col', required=True, help='Column with class labels')
-
-    args = parser.parse_args()
-    main(args)
+    main()

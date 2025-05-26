@@ -126,7 +126,7 @@ def generate_report(xlsx_path, ground_truth_path, pdf_dir, output_xlsx_dir):
 
     print(f"Saved classification results and pivot table to {output_xlsx_file}")
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description="Generate classification report and confusion matrices for EfficientNet predictions.")
     parser.add_argument('--xlsx_path', required=True, help='Path to predictions Excel file')
     parser.add_argument('--ground_truth_path', required=True, help='Path to ground truth Excel file')
@@ -140,3 +140,6 @@ if __name__ == '__main__':
         Path(args.pdf_dir),
         Path(args.output_xlsx_dir)
     )
+
+if __name__ == '__main__':
+    main()
