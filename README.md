@@ -36,18 +36,18 @@ conda activate HardCaseEnv
 ```
 
 <b>Entry Points</b>:
-<ul>
-<li<>'HCE-trainYOLO = Scripts.YOLO.train_YOLO:main'</li>
-<li<>'HCE-testYOLO = Scripts.YOLO.test_YOLO:main'</li>
-<li<>'HCE-CVATtoYOLO = Scripts.YOLO.CVAT_to_YOLO:main'</li>
-<li<>'HCE-CaseMatching = Scripts.DataFiltering.CaseMatching:main'</li>
-<li<>'HCE-evalEffNet = Scripts.EfficientNet.efficientnet_eval_report:main'</li>
-<li<>'HCE-testEffNet = Scripts.EfficientNet.efficientnet_test_eval:main'</li>
-<li<>'HCE-trainEffNet = Scripts.EfficientNet.efficientnet_train_fromcsv:main'</li>
-<li<>'HCE-gradcamEffNet = Scripts.EfficientNet.gradcam_efficientnet:main'</li>
-<li<>'HCE-evalYOLOMetrics = Scripts.StatisticsAndResults.yolov8_pr_curve_eval:main'</li>
-<li<>'HCE-evalEffNetMetrics = Scripts.StatisticsAndResults.effnet_eval.main:main'</li>
-<ul>
+```
+HCE-trainYOLO = Scripts.YOLO.train_YOLO:main
+HCE-testYOLO = Scripts.YOLO.test_YOLO:main
+HCE-CVATtoYOLO = Scripts.YOLO.CVAT_to_YOLO:main
+HCE-CaseMatching = Scripts.DataFiltering.CaseMatching:main
+HCE-evalEffNet = Scripts.EfficientNet.efficientnet_eval_report:main
+HCE-testEffNet = Scripts.EfficientNet.efficientnet_test_eval:main
+HCE-trainEffNet = Scripts.EfficientNet.efficientnet_train_fromcsv:main
+HCE-gradcamEffNet = Scripts.EfficientNet.gradcam_efficientnet:main
+HCE-evalYOLOMetrics = Scripts.StatisticsAndResults.yolov8_pr_curve_eval:main
+HCE-evalEffNetMetrics = Scripts.StatisticsAndResults.effnet_eval.main:main
+```
 ## CaseMatching.py
 
 Script which can be found in <<span style="color:green">DataFiltering</span> and is internal script to filter necssary files into valid cases. It simply merges two major dataframes <b>df1</b> and <b>df2</b> into one based on the keys and similarity score. This scrip is created to solve compatibility issues.
