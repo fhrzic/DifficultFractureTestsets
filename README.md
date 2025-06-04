@@ -8,7 +8,7 @@ Repository providing code for the study performed in paper <b>"Artificial Intell
 Repository is divided in several moduls where each module is impleneted in its own script inside designated directory. The idea is that code can be used separately based on ones needs. Here is the overview of repository composition and available scripts:
 
 ```
-FracturesHardCases:
+Scripts:
     --> DataFiltering:
         --> CaseMatching.py
     --> YOLO:
@@ -33,21 +33,21 @@ FracturesHardCases:
 
 ```
 conda env create -f environment.yml
-conda activate HardCaseEnv
+conda activate DifficultFractureTestsets
 ```
 
 <b>Entry Points</b>:
 ```
-HCE-trainYOLO = Scripts.YOLO.train_YOLO:main
-HCE-testYOLO = Scripts.YOLO.test_YOLO:main
-HCE-CVATtoYOLO = Scripts.YOLO.CVAT_to_YOLO:main
-HCE-CaseMatching = Scripts.DataFiltering.CaseMatching:main
-HCE-evalEffNet = Scripts.EfficientNet.efficientnet_eval_report:main
-HCE-testEffNet = Scripts.EfficientNet.efficientnet_test_eval:main
-HCE-trainEffNet = Scripts.EfficientNet.efficientnet_train_fromcsv:main
-HCE-gradcamEffNet = Scripts.EfficientNet.gradcam_efficientnet:main
-HCE-evalYOLOMetrics = Scripts.StatisticsAndResults.yolov8_pr_curve_eval:main
-HCE-evalEffNetMetrics = Scripts.StatisticsAndResults.effnet_eval.main:main
+DFT-trainYOLO = Scripts.YOLO.train_YOLO:main
+DFT-testYOLO = Scripts.YOLO.test_YOLO:main
+DFT-CVATtoYOLO = Scripts.YOLO.CVAT_to_YOLO:main
+DFT-CaseMatching = Scripts.DataFiltering.CaseMatching:main
+DFT-evalEffNet = Scripts.EfficientNet.efficientnet_eval_report:main
+DFT-testEffNet = Scripts.EfficientNet.efficientnet_test_eval:main
+DFT-trainEffNet = Scripts.EfficientNet.efficientnet_train_fromcsv:main
+DFT-gradcamEffNet = Scripts.EfficientNet.gradcam_efficientnet:main
+DFT-evalYOLOMetrics = Scripts.StatisticsAndResults.yolov8_pr_curve_eval:main
+DFT-evalEffNetMetrics = Scripts.StatisticsAndResults.effnet_eval.main:main
 ```
 ## CaseMatching.py
 
