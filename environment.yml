@@ -1,4 +1,4 @@
-name: HardCaseEnv
+name: DifficultFractureTestsets
 channels:
   - defaults
 dependencies:

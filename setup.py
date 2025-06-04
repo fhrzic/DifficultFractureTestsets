@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="HardCaseEnv",
+    name="DifficultFractureTestsets",
     version="0.1.0",
     description="Code for the paper: Artificial Intelligence Test Set Performance in Difficult Cases Matched with Routine Cases of Pediatric Appendicular Skeleton Fractures",
     author="Your Name",
